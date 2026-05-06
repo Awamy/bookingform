@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src https://script.google.com https://script.googleusercontent.com;">
+<title>نموذج الحجز</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f5f5f5;color:#1a1a1a;direction:rtl;min-height:100vh}
+.container{max-width:680px;margin:0 auto;padding:32px 16px}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:14px;color:#666;margin-bottom:28px}
+.card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:20px 24px;margin-bottom:16px}
+.section{margin-bottom:18px}
+.section:last-child{margin-bottom:0}
+label.field-label{display:block;font-size:13px;color:#555;margin-bottom:6px;font-weight:500}
+input[type=text],input[type=tel],select{width:100%;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;outline:none;font-family:inherit;transition:border-color .2s}
+input:focus,select:focus{border-color:#888;box-shadow:0 0 0 3px rgba(0,0,0,0.06)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:8px}
+.alert-error{background:#fff0f0;color:#c0392b;border:1px solid #f5c6c6}
+.alert-success{background:#f0fff4;color:#27ae60;border:1px solid #b2dfdb}
+.dates-section{border:1px solid #e8e8e8;border-radius:10px;padding:14px;background:#fafafa}
+.dates-week-title{font-size:12px;color:#666;margin-bottom:10px;font-weight:600}
+.dates-range{display:flex;flex-wrap:wrap;gap:8px}
+.date-btn{padding:7px 15px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid #ddd;background:#fff;color:#333;font-family:inherit;transition:all .15s}
+.date-btn:hover{background:#f0f0f0}
+.date-btn.selected{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.date-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:flex;align-items:center;gap:6px;padding:5px 12px;background:#e8f4fd;color:#1565c0;border-radius:20px;font-size:13px;flex-direction:row-reverse}
+.chip button{background:none;border:none;cursor:pointer;color:#1565c0;font-size:17px;line-height:1;padding:0}
+.btn-primary{display:block;width:100%;padding:12px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:none;background:#1a1a1a;color:#fff;font-family:inherit;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-left:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.verify-row{display:flex;gap:8px;flex-direction:row-reverse}
+.verify-row input{flex:1}
+.verify-btn{padding:10px 18px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-family:inherit;white-space:nowrap}
+.verify-btn:hover{background:#f5f5f5}
+@media(max-width:520px){.two-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>نموذج الحجز</h1>
+  <p class="subtitle">يرجى التحقق من رقمك القومي أولاً ثم إكمال البيانات</p>
+
+  <div class="card">
+    <div class="section">
+      <label class="field-label">الرقم القومي</label>
+      <div class="verify-row">
+        <input type="text" id="nid-input" placeholder="أدخل رقمك القومي" oninput="clearVerify()" maxlength="30" autocomplete="off">
+        <button class="verify-btn" onclick="verifyID()">تحقق</button>
+      </div>
+      <div id="nid-msg" role="alert"></div>
+    </div>
+  </div>
+
+  <div id="form-main" style="display:none">
+    <div class="card">
+      <div class="section">
+        <label class="field-label">الاسم كاملاً كما يظهر ببطاقة الرقم القومي</label>
+        <input type="text" id="name-input" placeholder="الاسم رباعي كاملاً" maxlength="120" autocomplete="off">
+      </div>
+      <div class="two-col section">
+        <div>
+          <label class="field-label">الكلية</label>
+          <input type="text" id="college-input" placeholder="مثال: كلية الهندسة" maxlength="80" autocomplete="off">
+        </div>
+        <div>
+          <label class="field-label">الفرقة</label>
+          <select id="year-input">
+            <option value="">-- اختر الفرقة --</option>
+            <option>الأولى</option><option>الثانية</option><option>الثالثة</option>
+            <option>الرابعة</option><option>الخامسة</option><option>السادسة</option><option>السابعة</option>
+          </select>
+        </div>
+      </div>
+      <div class="section">
+        <label class="field-label">رقم الهاتف</label>
+        <input type="tel" id="phone-input" placeholder="01XXXXXXXXX" maxlength="11" dir="ltr" style="text-align:right" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section">
+        <label class="field-label">اختر مواعيد الحجز</label>
+        <div class="dates-section">
+          <div class="dates-week-title">الأسبوع الأول: ١٠ مايو – ١٤ مايو ٢٠٢٦</div>
+          <div class="dates-range" id="week1-dates"></div>
+          <div class="dates-week-title" style="margin-top:14px">الأسبوع الثاني: ١٧ مايو – ٢١ مايو ٢٠٢٦</div>
+          <div class="dates-range" id="week2-dates"></div>
+        </div>
+        <div class="date-chips" id="chips-display"></div>
+        <div id="date-msg" role="alert"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="submit-btn" onclick="submitForm()">إرسال الحجز</button>
+    <div id="submit-msg" role="alert" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzW1gwBIF1y7netaYA66GbuBwc3FZzryuc880hWvFcSFKH7h__rnl42xnQp_uFkCKmb/exec';
+
+const week1=['2026-05-10','2026-05-11','2026-05-12','2026-05-13','2026-05-14'];
+const week2=['2026-05-17','2026-05-18','2026-05-19','2026-05-20','2026-05-21'];
+const allDates=[...week1,...week2];
+const arDays=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const arMonths=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const VALID_DATES=new Set(allDates);
+
+// XSS protection — تنظيف كل النصوص قبل إدراجها في HTML
+function esc(str){
+  const d=document.createElement('div');
+  d.appendChild(document.createTextNode(String(str)));
+  return d.innerHTML;
+}
+
+function fmtAr(d){
+  const dt=new Date(d+'T00:00:00');
+  return arDays[dt.getDay()]+' '+dt.getDate()+' '+arMonths[dt.getMonth()];
+}
+
+let submittedIDs=new Set();
+let allowedIDs=new Set();
+let selectedDates=[];
+let verifiedID=null;
+let lastVerifyTime=0;
+
+function buildDates(){
+  [['week1-dates',week1],['week2-dates',week2]].forEach(([id,dates])=>{
+    const el=document.getElementById(id);
+    dates.forEach(d=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='date-btn';
+      btn.id='db-'+d;
+      btn.textContent=fmtAr(d);
+      btn.addEventListener('click',()=>toggleDate(d));
+      el.appendChild(btn);
+    });
+  });
+}
+
+function toggleDate(d){
+  if(!VALID_DATES.has(d))return;
+  const btn=document.getElementById('db-'+d);
+  if(selectedDates.includes(d)){
+    selectedDates=selectedDates.filter(x=>x!==d);
+    btn.classList.remove('selected');
+  }else{
+    selectedDates.push(d);
+    btn.classList.add('selected');
+  }
+  renderChips();
+  document.getElementById('date-msg').textContent='';
+}
+
+function renderChips(){
+  const c=document.getElementById('chips-display');
+  c.innerHTML='';
+  selectedDates.slice().sort().forEach(d=>{
+    const chip=document.createElement('div');
+    chip.className='chip';
+    chip.innerHTML='<button type="button" aria-label="إزالة">&times;</button>';
+    chip.querySelector('button').addEventListener('click',()=>toggleDate(d));
+    const span=document.createElement('span');
+    span.textContent=fmtAr(d);
+    chip.appendChild(span);
+    c.appendChild(chip);
+  });
+}
+
+function clearVerify(){
+  verifiedID=null;
+  document.getElementById('form-main').style.display='none';
+  document.getElementById('nid-msg').innerHTML='';
+}
+
+function setMsg(id,type,text){
+  const el=document.getElementById(id);
+  el.innerHTML='';
+  const div=document.createElement('div');
+  div.className='alert alert-'+type;
+  div.textContent=text;
+  el.appendChild(div);
+}
+
+async function verifyID(){
+  // client-side rate limit
+  const now=Date.now();
+  if(now-lastVerifyTime<3000){setMsg('nid-msg','error','يرجى الانتظار قليلاً قبل المحاولة.');return;}
+  lastVerifyTime=now;
+
+  const val=document.getElementById('nid-input').value.trim();
+  if(!val){setMsg('nid-msg','error','يرجى إدخال الرقم القومي.');return;}
+  if(!/^[A-Za-z0-9\-\u0600-\u06FF]+$/.test(val)){setMsg('nid-msg','error','الرقم القومي يحتوي على رموز غير صالحة.');return;}
+
+  setMsg('nid-msg','','جاري التحقق...');
+  document.getElementById('nid-msg').querySelector('div').style.cssText='background:#f5f5f5;color:#555;border:1px solid #ddd';
+
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=getIDs');
+    const j=await r.json();
+    allowedIDs=new Set((j.allowedIDs||[]).map(x=>x.toUpperCase()));
+    submittedIDs=new Set((j.submittedIDs||[]).map(x=>x.toUpperCase()));
+  }catch(e){
+    setMsg('nid-msg','error','تعذّر الاتصال. يرجى المحاولة مجدداً.');
+    return;
+  }
+
+  const upper=val.toUpperCase();
+  if(!allowedIDs.has(upper)){
+    setMsg('nid-msg','error','الرقم القومي غير موجود في القائمة. يرجى المراجعة.');
+    document.getElementById('form-main').style.display='none';
+    return;
+  }
+  if(submittedIDs.has(upper)){
+    setMsg('nid-msg','error','هذا الرقم القومي سبق له الإرسال.');
+    document.getElementById('form-main').style.display='none';
+    return;
+  }
+  verifiedID=upper;
+  setMsg('nid-msg','success','✓ تم التحقق من الرقم القومي. أكمل البيانات أدناه.');
+  document.getElementById('form-main').style.display='block';
+}
+
+function validatePhone(p){return /^(010|011|012|015)\d{8}$/.test(p);}
+
+async function submitForm(){
+  const name=document.getElementById('name-input').value.trim();
+  const college=document.getElementById('college-input').value.trim();
+  const year=document.getElementById('year-input').value;
+  const phone=document.getElementById('phone-input').value.trim();
+  const btn=document.getElementById('submit-btn');
+
+  if(!verifiedID){setMsg('submit-msg','error','يرجى التحقق من الرقم القومي أولاً.');return;}
+  if(!name||name.length<2){setMsg('submit-msg','error','يرجى إدخال الاسم كاملاً.');return;}
+  if(!college){setMsg('submit-msg','error','يرجى إدخال الكلية.');return;}
+  if(!year){setMsg('submit-msg','error','يرجى اختيار الفرقة.');return;}
+  if(!validatePhone(phone)){setMsg('submit-msg','error','يرجى إدخال رقم هاتف مصري صحيح (010 أو 011 أو 012 أو 015).');return;}
+  if(selectedDates.length===0){setMsg('submit-msg','error','يرجى اختيار موعد واحد على الأقل.');return;}
+
+  // التحقق من أن التواريخ صالحة client-side أيضاً
+  if(selectedDates.some(d=>!VALID_DATES.has(d))){setMsg('submit-msg','error','تاريخ غير صالح.');return;}
+
+  btn.disabled=true;
+  btn.innerHTML='جاري الإرسال <span class="spinner"></span>';
+
+  try{
+    const resp=await fetch(SCRIPT_URL,{
+      method:'POST',
+      body:JSON.stringify({
+        action:'submit',
+        nid:verifiedID,
+        name,college,year,phone,
+        dates:selectedDates.slice().sort()
+      })
+    });
+    const j=await resp.json();
+    if(j.status==='ok'){
+      btn.style.display='none';
+      const msg=document.getElementById('submit-msg');
+      msg.innerHTML='';
+      const div=document.createElement('div');
+      div.className='alert alert-success';
+      div.style.cssText='font-size:15px;padding:16px';
+      div.textContent='✓ تم إرسال الحجز بنجاح! شكراً '+name+'، تم تسجيل حجزك في '+selectedDates.length+' موعد/مواعيد.';
+      msg.appendChild(div);
+      // reset
+      document.getElementById('nid-input').value='';
+      document.getElementById('form-main').style.display='none';
+      document.getElementById('nid-msg').innerHTML='';
+      verifiedID=null;selectedDates=[];
+      allDates.forEach(d=>{const b=document.getElementById('db-'+d);if(b)b.classList.remove('selected');});
+      renderChips();
+    }else{
+      btn.disabled=false;btn.innerHTML='إرسال الحجز';
+      setMsg('submit-msg','error',j.message||'حدث خطأ. يرجى المحاولة مجدداً.');
+    }
+  }catch(e){
+    btn.disabled=false;btn.innerHTML='إرسال الحجز';
+    setMsg('submit-msg','error','تعذّر الاتصال. يرجى المحاولة مجدداً.');
+  }
+}
+
+buildDates();
+</script>
+</body>
+</html>
